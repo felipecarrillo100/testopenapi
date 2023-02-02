@@ -1,0 +1,12 @@
+@import "themes/slate/_variables.scss";
+@import "node_modules/bootstrap/scss/bootstrap";
+@import "themes/slate/_bootswatch.scss";
+
+html,
+body {
+  height: 100%;
+}
+
+#root {
+  height: 100%;
+}
