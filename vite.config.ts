@@ -7,9 +7,5 @@ export default defineConfig({
   plugins: [react()],
   build: {
     sourcemap: true,
-    lib: {
-      entry: 'src/license/index.ts',
-      fileName: 'license',
-    },
   },
 })
