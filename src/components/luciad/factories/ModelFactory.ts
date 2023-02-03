@@ -71,7 +71,9 @@ class ModelFactory {
             const model = new OgcOpenApiTilesModel({
                 baseURL: modelOptions.baseURL,
                 tileMatrix: modelOptions.tileMatrix,
-                collection: modelOptions.collection
+                collection: modelOptions.collection,
+                transparent:modelOptions.transparent,
+                bgcolor:modelOptions.bgcolor,
             });
             if (model) {
                 resolve(model);
@@ -87,6 +89,10 @@ class ModelFactory {
                 baseURL: modelOptions.baseURL,
                 collection: modelOptions.collection,
                 crs: modelOptions.crs,
+                transparent:modelOptions.transparent,
+                bgcolor:modelOptions.bgcolor,
+                datetime: modelOptions.datetime,
+                subset: modelOptions.subset
             });
             if (model) {
                 resolve(model);

@@ -8,7 +8,6 @@ import {createBounds} from "@luciad/ria/shape/ShapeFactory";
 import {TileSetData} from "ogcopenapis/lib/OgcOpenApiGetCapabilities";
 import {OgcOpenApiCrsTools} from "ogcopenapis/lib/OgcOpenApiCrsTools";
 
-
 export interface OgcOpenApiTilesModelOptions {
     tileMatrix: TileSetData;
     baseURL: string;
@@ -28,6 +27,8 @@ export class OgcOpenApiTilesModel extends UrlTileSetModel {
     private tileMatrix: TileSetData;
     private invertY: boolean;
     private plevel0Rows: number;
+    private transparent: boolean;
+    private bgcolor: string | undefined;
 
     constructor(options: OgcOpenApiTilesModelOptions) {
         const crsName = OgcOpenApiCrsTools.getReferenceName(options.tileMatrix.crs);
@@ -99,7 +100,8 @@ export class OgcOpenApiTilesModel extends UrlTileSetModel {
         }
         super(o);
         this.plevel0Rows = level0Rows;
-
+        this.transparent = typeof options.transparent !== "undefined" ? options.transparent : true;
+        this.bgcolor = options.bgcolor;
         this.invertY = invertY;
         this.tileMatrix = options.tileMatrix;
         this.modelDescriptor = {
@@ -118,8 +120,13 @@ export class OgcOpenApiTilesModel extends UrlTileSetModel {
         const zoomLevel = this.tileMatrix.tileMatrices.find(t=>Number(t.id) === tile.level);
         const level = zoomLevel ? zoomLevel.id : tile.level.toString();
 
+        const urlParameters = {
+            transparent: this.transparent,
+            bgcolor: this.transparent ? undefined : this.bgcolor
+        }
+        const query = OgcOpenApiTilesModel.createURLParameters(urlParameters);
         const targetUrl = baseURL.replace("{tileMatrix}",level).replace("{tileRow}", tileCorrected.y.toString()).replace("{tileCol}", tileCorrected.x.toString());
-        return targetUrl;
+        return targetUrl + (query && query!=="" ) ? targetUrl + "?"+query : targetUrl;
     }
 
     debugAsImage(tileCorrected: TileCoordinate) {
@@ -138,5 +145,17 @@ export class OgcOpenApiTilesModel extends UrlTileSetModel {
         return null;
     }
 
+    private static createURLParameters(obj:{[key:string]: any}) {
+        let str = Object.keys(obj).filter(k=>obj[k]!==undefined).map(function(key) {
+            if(Array.isArray(obj[key])) {
+                return key + '=' + obj[key].join(",")
+            }
+            if (typeof obj[key] == "boolean") {
+                return key + '=' + (obj[key]?"true":"false")
+            }
+            return key + '=' + obj[key];
+        }).join('&');
+        return str
+    }
 
 }

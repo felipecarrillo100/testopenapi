@@ -25,12 +25,15 @@ const ConnectOpenAPITilesForm: React.FC<SliderPanelContentProps> = (props: Slide
         tileMatrix: null as (null | TileSetData),
         formats: [] as LinkType[],
         format: "" as string,
-        baseUrl: "" as string
+        baseUrl: "" as string,
+        transparent: true,
+        bgcolor: "0xFFFFFF"
     })
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const {name, value} = event.target;
-        setInputs({...inputs, [name]: value});
+        const realValue = event.target.type === 'checkbox' ? event.target.checked : value;
+        setInputs({...inputs, [name]: realValue});
     }
 
     const handleSelectFormat = (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -103,7 +106,9 @@ const ConnectOpenAPITilesForm: React.FC<SliderPanelContentProps> = (props: Slide
                             model:{
                                 baseURL: inputs.baseUrl,
                                 collection: collection.id,
-                                tileMatrix: inputs.tileMatrix
+                                tileMatrix: inputs.tileMatrix,
+                                bgcolor: inputs.bgcolor,
+                                transparent: inputs.transparent
                             },
                             layer:{
                                 label: inputs.label
@@ -250,6 +255,21 @@ const ConnectOpenAPITilesForm: React.FC<SliderPanelContentProps> = (props: Slide
                 <Form.Control placeholder="Layer name" name="baseUrl" defaultValue={inputs.baseUrl} />
             </Form.Group>
 
+
+
+            <Row>
+                <Col sm={6}>
+                    <Form.Group className="mb-3" controlId="transparent-id">
+                        <Form.Check label="Transparent" name={"transparent"} checked={inputs.transparent} onChange={handleChange} />
+                    </Form.Group>
+                </Col>
+                <Col sm={6}>
+                    <Form.Group className="mb-3" controlId="backgroundColorID">
+                        <Form.Label>BG Color</Form.Label>
+                        <Form.Control placeholder="Color i.e 0xFFFFFF" name="bgcolor" value={inputs.bgcolor} onChange={handleChange}/>
+                    </Form.Group>
+                </Col>
+            </Row>
             <Form.Group className="mb-3" controlId="exampleForm.ControlTextarea1">
                 <Form.Label>Tile Matrix</Form.Label>
                 <Form.Control as="textarea" rows={5} value={JSON.stringify(inputs.tileMatrix, null, 2)} readOnly={true} onChange={handleChange}/>
@@ -260,7 +280,7 @@ const ConnectOpenAPITilesForm: React.FC<SliderPanelContentProps> = (props: Slide
                     <Button variant="secondary" type="button" onClick={props.closeForm}>
                         Cancel
                     </Button>
-                    <Button variant="primary" type="submit" onClick={props.closeForm}>
+                    <Button variant="primary" type="submit" >
                         Create Layer
                     </Button>
                 </div>
