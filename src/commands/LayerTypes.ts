@@ -5,6 +5,7 @@ enum LayerTypes {
     TMS = "TMS",
     OpenApiTiles = "OpenApiTiles",
     OpenApiMaps = "OpenApiMaps",
+    OpenApiFeatures = "OpenApiFeatures",
     GRID = "GRID",
 }
 

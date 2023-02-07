@@ -11,8 +11,10 @@ import {LayerTree} from "@luciad/ria/view/LayerTree";
 import {LonLatGrid} from "@luciad/ria/view/grid/LonLatGrid";
 import {GridLayer} from "@luciad/ria/view/grid/GridLayer";
 
-import { OgcOpenApiTilesModel } from "../models/OgcOpenApiTilesModel";
-import {OgcOpenApiMapsModel} from "../models/OgcOpenApiMapsModel";
+import {OgcOpenApiTilesModel} from "ogcopenapis/lib/OgcOpenApiTilesModel";
+import {OgcOpenApiMapsModel} from "ogcopenapis/lib//OgcOpenApiMapsModel";
+import {FeatureModel} from "@luciad/ria/model/feature/FeatureModel";
+import {FeatureLayer} from "@luciad/ria/view/feature/FeatureLayer";
 
 function PromiseToModel<mytype>(model:any) {
     return new Promise<mytype>((resolve)=>resolve(model));
@@ -48,6 +50,9 @@ class LayerBuilder {
     protected createAnyLayer(command: Command) {
         let layerPromise = null;
         switch ((command as any).parameters.layerType as LayerTypes) {
+            case LayerTypes.OpenApiFeatures:
+                layerPromise = this.buildAnyLayer<FeatureModel, FeatureLayer>(command, this.modelFactory.createOpenApiFeaturesModel, this.layerFactory.createOpenApiFeaturesLayer);
+                break;
             case LayerTypes.GRID:
                 layerPromise = this.buildAnyLayer<LonLatGrid, GridLayer>(command, this.modelFactory.createGridModel, this.layerFactory.createGridLayer);
                 break;

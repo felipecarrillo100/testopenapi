@@ -52,6 +52,9 @@ const AppNavbar: React.FC<Props> = (props: Props) => {
                             <NavDropdown.Item onClick={triggerCommandOpenFormByID("ConnectOpenAPIMaps")}>
                                 Open API Maps
                             </NavDropdown.Item>
+                            <NavDropdown.Item onClick={triggerCommandOpenFormByID("ConnectOpenAPIFeatures")}>
+                                Open API Features
+                            </NavDropdown.Item>
                         </NavDropdown>
 
                         <NavDropdown title="Test" id="basic-nav-dropdown">

@@ -3,9 +3,12 @@ import {createBounds} from "@luciad/ria/shape/ShapeFactory";
 import {getReference} from "@luciad/ria/reference/ReferenceProvider";
 import {LonLatGrid} from "@luciad/ria/view/grid/LonLatGrid";
 import {LonLatPointFormat} from "@luciad/ria/shape/format/LonLatPointFormat";
-import { OgcOpenApiTilesModel } from "../models/OgcOpenApiTilesModel";
-import {OgcOpenApiMapsModel} from "../models/OgcOpenApiMapsModel";
-// import {OgcOpenApiTilesModel} from "ogcopenapis/lib/OgcOpenApiTilesModel";
+import { OgcOpenApiTilesModel } from "ogcopenapis/lib/OgcOpenApiTilesModel";
+import {OgcOpenApiMapsModel} from "ogcopenapis/lib//OgcOpenApiMapsModel";
+import {FeatureModel} from "@luciad/ria/model/feature/FeatureModel";
+import {OgcOpenApiFeatureStore, OgcOpenApiFeatureStoreConstructorOptions} from "ogcopenapis/lib/OgcOpenApiFeatureStore";
+import {GeoJsonCodec} from "@luciad/ria/model/codec/GeoJsonCodec";
+import {OgcOpenApiCrsTools} from "ogcopenapis/lib/OgcOpenApiCrsTools";
 
 
 const DefaultGridSettings = {
@@ -83,6 +86,33 @@ class ModelFactory {
         });
     }
 
+    public createOpenApiFeaturesModel(modelOptions: any) {
+        return new Promise<FeatureModel>((resolve, reject) => {
+            const referenceName = OgcOpenApiCrsTools.getReferenceName(modelOptions.tmp_reference)
+            const reference = getReference(referenceName);
+
+            const codec = new GeoJsonCodec({generateIDs: false, swapAxes: modelOptions.swapAxes ? [referenceName]: [] });
+            const options: OgcOpenApiFeatureStoreConstructorOptions = {
+                codec,
+                outputFormat: modelOptions.outputFormat,
+                reference,
+                featureUrl: modelOptions.featureUrl,
+                dataUrl: modelOptions.dataUrl,
+                requestHeaders: modelOptions.requestHeaders,
+                customCrs: modelOptions.customCrs,
+                useCrs84Bounds: modelOptions.useCrs84Bounds
+            }
+                const store = new OgcOpenApiFeatureStore(options);
+                const model = new FeatureModel(store, {reference: options.reference});
+                if (model) {
+                    resolve(model);
+                } else {
+                    reject();
+                }
+
+        });
+    }
+
     public createOpenApiMapsModel(modelOptions: any) {
         return new Promise<OgcOpenApiMapsModel>((resolve, reject) => {
             const model = new OgcOpenApiMapsModel({
@@ -123,6 +153,8 @@ class ModelFactory {
             }
         });
     }
+
+
 
 }
 

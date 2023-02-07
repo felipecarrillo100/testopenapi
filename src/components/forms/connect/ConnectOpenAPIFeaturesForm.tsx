@@ -11,14 +11,14 @@ import {
     OgcOpenApiGetCapabilities
 } from "ogcopenapis/lib/OgcOpenApiGetCapabilities";
 
-const PREFERRED_IMAGE_FORMAT = "image/png";
+const PREFERRED_FEATURE_FORMAT = "application/geo+json";
 const PREFERRED_CRS = "http://www.opengis.net/def/crs/OGC/1.3/CRS84";
 
-const ConnectOpenAPIMapsForm: React.FC<SliderPanelContentProps> = (props: SliderPanelContentProps) =>{
+const ConnectOpenAPIFeaturesForm: React.FC<SliderPanelContentProps> = (props: SliderPanelContentProps) =>{
     const capabilities = useRef(null as (null |  OgcOpenApiCapabilitiesObject))
 
     const [inputs , setInputs] = useState({
-        label: "OGC API Maps Layer",
+        label: "OGC API Features Layer",
         url: "https://maps.gnosis.earth/ogcapi/",
         // url: "https://test.cubewerx.com/cubewerx/cubeserv/demo/ogcapi/EuroRegionalMap",
         collections: [] as OgcOpenApiCapabilitiesCollection[],
@@ -28,8 +28,6 @@ const ConnectOpenAPIMapsForm: React.FC<SliderPanelContentProps> = (props: Slider
         format: "" as string,
         baseUrl: "" as string,
         projections: [] as string[],
-        transparent: true,
-        bgcolor: "0xFFFFFF"
     })
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -48,13 +46,13 @@ const ConnectOpenAPIMapsForm: React.FC<SliderPanelContentProps> = (props: Slider
         const {name, value} = event.target;
         const collection = inputs.collections.find(c=>c.id === value);
         if (collection && capabilities.current) {
-            const availableFormats = OgcOpenApiGetCapabilities.filterCollectionLinks(collection.links, CollectionLinkType.Map);
-            const formatLink = availableFormats.find(l=>l.type === PREFERRED_IMAGE_FORMAT);
+            const availableFormats = OgcOpenApiGetCapabilities.filterCollectionLinks(collection.links, CollectionLinkType.Items);
+            const formatLink = availableFormats.find(l=>l.type === PREFERRED_FEATURE_FORMAT);
             const format = formatLink ? formatLink.type : availableFormats[0].type;
             const baseUrl = formatLink ? formatLink.href : availableFormats[0].href;
             setInputs({...inputs,
                 collection: collection.id,
-                crs: collection.crs[0],
+                crs: PREFERRED_CRS,
                 projections: collection.crs,
                 formats: availableFormats, format,
                 baseUrl: baseUrl
@@ -66,7 +64,7 @@ const ConnectOpenAPIMapsForm: React.FC<SliderPanelContentProps> = (props: Slider
         const {name, value} = event.target;
         const collection = inputs.collections.find(c=>c.id === inputs.collection);
         if (collection && capabilities.current) {
-            const availableFormats = OgcOpenApiGetCapabilities.filterCollectionLinks(collection.links, CollectionLinkType.Map);
+            const availableFormats = OgcOpenApiGetCapabilities.filterCollectionLinks(collection.links, CollectionLinkType.Items);
             const formatLink = availableFormats.find(l=>l.type === value);
             const baseUrl = formatLink ? formatLink.href : availableFormats[0].href;
             setInputs({
@@ -88,18 +86,19 @@ const ConnectOpenAPIMapsForm: React.FC<SliderPanelContentProps> = (props: Slider
                     const command: Command = {
                         type: CommandType.CreateAnyLayer,
                         parameters: {
-                            layerType: LayerTypes.OpenApiMaps,
+                            layerType: LayerTypes.OpenApiFeatures,
                             model:{
-                                baseURL: inputs.baseUrl,
-                                collection: collection.id,
-                                crs: inputs.crs,
-                                transparent: inputs.transparent,
-                                bgcolor: inputs.bgcolor,
-                            //    subset: ["sub1", "sub2"],
-                            //    datetime: "2018-02-12T23:20:50Z"
+                                outputFormat: inputs.format,
+                                tmp_reference: inputs.crs,
+                                featureUrl: inputs.baseUrl,
+                                dataUrl: inputs.baseUrl,
+                                requestHeaders: {},
+                                customCrs: inputs.crs,
+                                useCrs84Bounds: true
                             },
                             layer:{
-                                label: inputs.label
+                                label: inputs.label,
+                                selectable: true
                             }
                         }
                     }
@@ -112,11 +111,12 @@ const ConnectOpenAPIMapsForm: React.FC<SliderPanelContentProps> = (props: Slider
 
     const getCapabilities = () => {
         setCapabilities(null);
-        OgcOpenApiGetCapabilities.fromURL(inputs.url,{filterCollectionsByLinkType: CollectionLinkType.Map}).then(capabilities=>{
+        OgcOpenApiGetCapabilities.fromURL(inputs.url,{filterCollectionsByLinkType: CollectionLinkType.Items}).then(capabilities=>{
             setCapabilities(capabilities);
             const firstCollection = capabilities.collections[0];
-            const availableFormats = OgcOpenApiGetCapabilities.filterCollectionLinks(firstCollection.links, CollectionLinkType.Map);
-            const formatLink = availableFormats.find(l=>l.type === PREFERRED_IMAGE_FORMAT);
+            const availableFormats = OgcOpenApiGetCapabilities.filterCollectionLinks(firstCollection.links, CollectionLinkType.Items);
+
+            const formatLink = availableFormats.find(l=>l.type === PREFERRED_FEATURE_FORMAT);
             const format = formatLink ? formatLink.type : availableFormats[0].type;
             const baseUrl = formatLink ? formatLink.href : availableFormats[0].href;
             setInputs({...inputs,
@@ -192,21 +192,6 @@ const ConnectOpenAPIMapsForm: React.FC<SliderPanelContentProps> = (props: Slider
                 <Form.Control placeholder="Layer name" name="baseUrl" defaultValue={inputs.baseUrl} />
             </Form.Group>
 
-            <Row>
-                <Col sm={6}>
-                    <Form.Group className="mb-3" controlId="transparent-id">
-                        <Form.Check label="Transparent" name={"transparent"} checked={inputs.transparent} onChange={handleChange} />
-                    </Form.Group>
-                </Col>
-                <Col sm={6}>
-                    <Form.Group className="mb-3" controlId="backgroundColorID">
-                        <Form.Label>BG Color</Form.Label>
-                        <Form.Control placeholder="Color i.e 0xFFFFFF" name="bgcolor" value={inputs.bgcolor} onChange={handleChange}/>
-                    </Form.Group>
-                </Col>
-            </Row>
-
-
             <div style={{ display: "inline-block", width: "100%"}}>
                 <div style={{float:"right"}}>
                     <Button variant="secondary" type="button" onClick={props.closeForm}>
@@ -222,5 +207,5 @@ const ConnectOpenAPIMapsForm: React.FC<SliderPanelContentProps> = (props: Slider
 }
 
 export{
-    ConnectOpenAPIMapsForm
+    ConnectOpenAPIFeaturesForm
 }

@@ -11,14 +11,15 @@ import {DynamicForms} from "./components/forms/DynamicForms";
 import {ConnectTMSForm} from "./components/forms/connect/ConnectTMSForm";
 import {ConnectOpenAPITilesForm} from "./components/forms/connect/ConnectOpenAPITilesForm";
 import {ConnectOpenAPIMapsForm} from "./components/forms/connect/ConnectOpenAPIMapsForm";
+import {ConnectOpenAPIFeaturesForm} from "./components/forms/connect/ConnectOpenAPIFeaturesForm";
 
 const forms = new DynamicForms();
 forms.register({uid: "ConnectTMS", form: <ConnectTMSForm />})
 forms.register({uid: "ConnectOpenAPITiles", form: <ConnectOpenAPITilesForm />})
 forms.register({uid: "ConnectOpenAPIMaps", form: <ConnectOpenAPIMapsForm />})
+forms.register({uid: "ConnectOpenAPIFeatures", form: <ConnectOpenAPIFeaturesForm />})
 
 forms.register({uid: "ConnectWMS", form: <FormTest2 />})
-
 
 function App() {
   const [command, setCommand] = useState(null as (Command | null));

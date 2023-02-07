@@ -8,7 +8,6 @@ import {
     OgcOpenApiCapabilitiesCollection, OgcOpenApiCapabilitiesObject,
     OgcOpenApiGetCapabilities, TileSetData, TileSetMeta
 } from "ogcopenapis/lib/OgcOpenApiGetCapabilities";
-import {OgcOpenApiTilesModel} from "../../luciad/models/OgcOpenApiTilesModel";
 
 const PREFERRED_IMAGE_FORMAT = "image/png";
 
@@ -125,18 +124,6 @@ const ConnectOpenAPITilesForm: React.FC<SliderPanelContentProps> = (props: Slide
         }
     }
 
-    const loadTileMatrix = ( tileSetMeta: TileSetMeta ) => {
-        return new Promise<TileSetData>((resolve)=>{
-            if (capabilities.current) {
-                OgcOpenApiGetCapabilities.fetchTileset(capabilities.current, tileSetMeta).then(tileMatrix=>{
-                    resolve(tileMatrix);
-                }).catch(()=>{
-                    console.log("Failed to load tilematrix")
-                })
-            }
-        })
-    }
-
     const setCurrentCapabilities = ( c: OgcOpenApiCapabilitiesObject | null) => {
         capabilities.current = c;
     }
@@ -152,14 +139,14 @@ const ConnectOpenAPITilesForm: React.FC<SliderPanelContentProps> = (props: Slide
     const loadAvailableFormats = (collection: OgcOpenApiCapabilitiesCollection, tileMatrixID: string) => {
         return new Promise<{format: string, baseUrl: string, formats:LinkType[]}>((resolve, reject)=>{
             if (collection && capabilities.current) {
-                OgcOpenApiGetCapabilities.getTilesLink(capabilities.current, collection, tileMatrixID).then((availaleFormats)=>{
+                OgcOpenApiGetCapabilities.getTilesLink(capabilities.current, collection, tileMatrixID).then((availableFormats)=>{
                     let format = PREFERRED_IMAGE_FORMAT;
                     let baseUrl = "";
-                    if (availaleFormats.length>0) {
-                        const formatLink = availaleFormats.find(l=>l.type === PREFERRED_IMAGE_FORMAT);
+                    if (availableFormats.length>0) {
+                        const formatLink = availableFormats.find(l=>l.type === PREFERRED_IMAGE_FORMAT);
                         if (!formatLink) {
-                            format = availaleFormats[0].type;
-                            baseUrl = availaleFormats[0].href;
+                            format = availableFormats[0].type;
+                            baseUrl = availableFormats[0].href;
                         } else {
                             format = formatLink.type;
                             baseUrl = formatLink.href;
@@ -168,7 +155,7 @@ const ConnectOpenAPITilesForm: React.FC<SliderPanelContentProps> = (props: Slide
                     resolve({
                         format: format,
                         baseUrl: baseUrl,
-                        formats: availaleFormats
+                        formats: availableFormats
                     })
                 });
             } else {
