@@ -8,6 +8,7 @@ import {
     OgcOpenApiCapabilitiesCollection, OgcOpenApiCapabilitiesObject,
     OgcOpenApiGetCapabilities, TileSetData, TileSetMeta
 } from "ogcopenapis/lib/OgcOpenApiGetCapabilities";
+import {OgcOpenApiTilesModel} from "../../luciad/models/OgcOpenApiTilesModel";
 
 const PREFERRED_IMAGE_FORMAT = "image/png";
 
@@ -17,9 +18,9 @@ const ConnectOpenAPITilesForm: React.FC<SliderPanelContentProps> = (props: Slide
     const [inputs , setInputs] = useState({
         label: "OGC API Tiles Layer",
         url: "https://maps.gnosis.earth/ogcapi/",
-        // url: "https://test.cubewerx.com/cubewerx/cubeserv/demo/ogcapi/EuroRegionalMap",
+       // url: "https://test.cubewerx.com/cubewerx/cubeserv/demo/ogcapi/EuroRegionalMap",
         collections: [] as OgcOpenApiCapabilitiesCollection[],
-        tileMatrices: [] as TileSetMeta[],
+        tileMatrices: [] as TileSetData[],
         tileMatrixID: "",
         collection: "",
         tileMatrix: null as (null | TileSetData),
@@ -77,7 +78,7 @@ const ConnectOpenAPITilesForm: React.FC<SliderPanelContentProps> = (props: Slide
         const collection = inputs.collections.find(c=>c.id === inputs.collection);
         const foundTileMatrix = inputs.tileMatrices.find(t=>t.id === value);
         if (collection && foundTileMatrix) {
-            loadTileMatrix(foundTileMatrix).then((tileMatrix)=> {
+            const tileMatrix = foundTileMatrix;
                 loadAvailableFormats(collection, tileMatrix.id).then((formatsResult) => {
                     setInputs({
                         ...inputs,
@@ -88,7 +89,6 @@ const ConnectOpenAPITilesForm: React.FC<SliderPanelContentProps> = (props: Slide
                         baseUrl: formatsResult.baseUrl
                     });
                 })
-            })
         }
     }
 
@@ -98,7 +98,12 @@ const ConnectOpenAPITilesForm: React.FC<SliderPanelContentProps> = (props: Slide
         console.log("Submit!");
 
         const collection = inputs.collections.find(c=>c.id===inputs.collection);
-        if (collection) {
+
+        if (collection && inputs.tileMatrix) {
+            if (OgcOpenApiGetCapabilities.getQuadTreeCompatibleLevelOffset(inputs.tileMatrix) !== 0) {
+                console.log("Tile Matrix not supported!!!!")
+                return;
+            }
                     const command: Command = {
                         type: CommandType.CreateAnyLayer,
                         parameters: {
@@ -136,8 +141,12 @@ const ConnectOpenAPITilesForm: React.FC<SliderPanelContentProps> = (props: Slide
         capabilities.current = c;
     }
 
-    const loadTileMatrices = () => {
-         return OgcOpenApiGetCapabilities.fetchTileSets(capabilities.current);
+    const loadTileMatrices = ():Promise<TileSetData[]> => {
+        return new Promise<TileSetData[]>(resolve => {
+            OgcOpenApiGetCapabilities.fetchTileSetsInFull(capabilities.current).then(arr=>{
+                resolve(arr.filter(a=>OgcOpenApiGetCapabilities.getQuadTreeCompatibleLevelOffset(a)==0))
+            })
+        })
     }
 
     const loadAvailableFormats = (collection: OgcOpenApiCapabilitiesCollection, tileMatrixID: string) => {
@@ -176,7 +185,7 @@ const ConnectOpenAPITilesForm: React.FC<SliderPanelContentProps> = (props: Slide
                 if (capabilities.collections.length>0 && tilesetMeta.length>0) {
                     const firstCollection = capabilities.collections[0];
                     const firstTileMatrix = tilesetMeta[0];
-                    loadTileMatrix(firstTileMatrix).then((tileMatrix)=>{
+                    const tileMatrix = tilesetMeta[0]
                         loadAvailableFormats(firstCollection, firstTileMatrix.id).then((formatsResult)=>{
                             setInputs({...inputs,
                                 collections: capabilities.collections,
@@ -190,7 +199,6 @@ const ConnectOpenAPITilesForm: React.FC<SliderPanelContentProps> = (props: Slide
                                 baseUrl: formatsResult.baseUrl
                             });
                         })
-                    });
                 }
             });
         }, (err)=>{
@@ -240,7 +248,7 @@ const ConnectOpenAPITilesForm: React.FC<SliderPanelContentProps> = (props: Slide
                 <Form.Label>Available Formats</Form.Label>
                 <Form.Select name="format" value={inputs.format} onChange={handleSelectFormat}>
                     {inputs.formats.map((t, index)=> (
-                        <option value={t.type} key={t.type}>{t.type}</option>
+                        <option value={t.type} key={t.type+`_${index}`}>{t.type}</option>
                     ))}
                 </Form.Select>
             </Form.Group>
@@ -254,8 +262,6 @@ const ConnectOpenAPITilesForm: React.FC<SliderPanelContentProps> = (props: Slide
                 <Form.Label>baseUrl !!!</Form.Label>
                 <Form.Control placeholder="Layer name" name="baseUrl" defaultValue={inputs.baseUrl} />
             </Form.Group>
-
-
 
             <Row>
                 <Col sm={6}>

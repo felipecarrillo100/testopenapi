@@ -46,7 +46,7 @@ const ConnectOpenAPIMapsForm: React.FC<SliderPanelContentProps> = (props: Slider
     const handleSelectLayer = (event: React.ChangeEvent<HTMLSelectElement>) => {
         const {name, value} = event.target;
         const collection = inputs.collections.find(c=>c.id === value);
-        if (collection ) {
+        if (collection && capabilities.current) {
             const availableFormats = OgcOpenApiGetCapabilities.filterCollectionLinks(collection.links, CollectionLinkType.Map);
             const formatLink = availableFormats.find(l=>l.type === PREFERRED_IMAGE_FORMAT);
             const format = formatLink ? formatLink.type : availableFormats[0].type;
@@ -56,7 +56,7 @@ const ConnectOpenAPIMapsForm: React.FC<SliderPanelContentProps> = (props: Slider
                 crs: collection.crs[0],
                 projections: collection.crs,
                 formats: availableFormats, format,
-                baseUrl: OgcOpenApiGetCapabilities.addHostURL(baseUrl, capabilities.current?.hostUrl)
+                baseUrl: capabilities.current?.serverOptions.complete(baseUrl)
             })
         }
     }
@@ -64,14 +64,14 @@ const ConnectOpenAPIMapsForm: React.FC<SliderPanelContentProps> = (props: Slider
     const handleSelectFormat  = (event: React.ChangeEvent<HTMLSelectElement>) => {
         const {name, value} = event.target;
         const collection = inputs.collections.find(c=>c.id === inputs.collection);
-        if (collection) {
+        if (collection && capabilities.current) {
             const availableFormats = OgcOpenApiGetCapabilities.filterCollectionLinks(collection.links, CollectionLinkType.Map);
             const formatLink = availableFormats.find(l=>l.type === value);
             const baseUrl = formatLink ? formatLink.href : availableFormats[0].href;
             setInputs({
                 ...inputs,
                 [name]: value,
-                baseUrl: OgcOpenApiGetCapabilities.addHostURL(baseUrl, capabilities.current?.hostUrl)
+                baseUrl: capabilities.current.serverOptions.complete(baseUrl)
             });
         }
     }
@@ -122,7 +122,7 @@ const ConnectOpenAPIMapsForm: React.FC<SliderPanelContentProps> = (props: Slider
                 collections: capabilities.collections, collection: firstCollection.id,
                 crs: firstCollection.crs[0],
                 formats: availableFormats, format,
-                baseUrl: OgcOpenApiGetCapabilities.addHostURL(baseUrl, capabilities.hostUrl),
+                baseUrl: capabilities.serverOptions.complete(baseUrl),
                 projections: firstCollection.crs,
             })
         }, (err)=>{

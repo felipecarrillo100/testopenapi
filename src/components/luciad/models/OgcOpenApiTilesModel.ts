@@ -8,6 +8,7 @@ import {createBounds} from "@luciad/ria/shape/ShapeFactory";
 import {TileSetData} from "ogcopenapis/lib/OgcOpenApiGetCapabilities";
 import {OgcOpenApiCrsTools} from "ogcopenapis/lib/OgcOpenApiCrsTools";
 
+
 export interface OgcOpenApiTilesModelOptions {
     tileMatrix: TileSetData;
     baseURL: string;
@@ -17,7 +18,6 @@ export interface OgcOpenApiTilesModelOptions {
     requestHeaders?: { [p: string]: string };
     // requestParameters?: { [parameterName: string]: string | number | boolean | null | undefined } | null;
 
-    // To be implemented
     transparent?: boolean;
     bgcolor?: string;
 
